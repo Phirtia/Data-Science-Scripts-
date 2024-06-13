@@ -1,7 +1,11 @@
 # Data-Science-Scripts-
-Repositório para guardar scripts desenvolvidos e demais materiais de trabalho como cientista de dados
+Repositório para guardar scripts em R desenvolvidos enquanto cientista de dados
 
-## Processamentos SMDHC
+## Data Wrangling
 
-- [Exemplo de Data Wrangling com múltiplas aplicações](anexos/ouvidoria_v3.R)
+- [Script ODH](anexos/ouvidoria_v3.R)
 
+## Data mining
+
+- [Scritp Frequência Simples](anexos/Script_CCLGBTI.R)
+ 
