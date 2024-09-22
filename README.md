@@ -13,5 +13,5 @@ Repositório para guardar scripts em R desenvolvidos enquanto cientista de dados
 
 - [Script Data Wrangling - R](TCC_Data_Wrangling.R)
 - [Script Clusterização - R](TCC_Análises.R)
-- [Script Modelo Logístico Multinomial - Python]
-- [Script Modelo Logístico Binário - Python]
+- [Script Modelo Logístico Multinomial - Python](modelo_clusterização.py)
+- [Script Modelo Logístico Binário - Python](Modelo binário_Python.py)
