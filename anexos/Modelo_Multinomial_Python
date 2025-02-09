@@ -1,0 +1,358 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Sep 21 11:31:24 2024
+
+@author: phirt
+"""
+
+#%% Instalação dos pacotes
+
+!pip install pandas
+!pip install numpy
+!pip install -U seaborn
+!pip install matplotlib
+!pip install plotly
+!pip install scipy
+!pip install statsmodels
+!pip install scikit-learn
+!pip install statstests
+
+
+#%% Importação dos pacotes
+
+import pandas as pd # manipulação de dados em formato de dataframe
+import numpy as np # operações matemáticas
+import seaborn as sns # visualização gráfica
+import matplotlib.pyplot as plt # visualização gráfica
+from scipy.interpolate import UnivariateSpline # curva sigmoide suavizada
+import statsmodels.api as sm # estimação de modelos
+import statsmodels.formula.api as smf # estimação do modelo logístico binário
+from statstests.process import stepwise # procedimento Stepwise
+from scipy import stats # estatística chi2
+from scipy.stats import chi2_contingency
+import plotly.graph_objects as go # gráficos 3D
+from statsmodels.iolib.summary2 import summary_col # comparação entre modelos
+from statsmodels.discrete.discrete_model import MNLogit # estimação do modelo
+                                                        #logístico multinomial
+import warnings
+warnings.filterwarnings('ignore')
+
+#%% importando BD
+
+df_cluster = pd.read_csv('BD_cluster_final.csv', delimiter=',')
+df_cluster
+
+df_cluster.info()
+
+
+#%% Criando outro BD com variáveis de interesse sem os clusters
+
+Variaveis_interesse = [2,3,4,5,6,7,8,9,10,32]
+
+df_cluster2 = df_cluster.iloc[:,Variaveis_interesse]
+
+df_cluster2.info()
+
+#%% Estatísticas descritivas daS variáveis
+
+df_cluster2['NATURALIDADE_B'].value_counts().sort_index()
+df_cluster2['Raça/cor'].value_counts().sort_index()
+df_cluster2['ESCOLARIDADE_B'].value_counts().sort_index()
+df_cluster2['RELAÇÃO_TRABALHO_B'].value_counts().sort_index()
+df_cluster2['Estado_Civil'].value_counts().sort_index()
+df_cluster2['Filhos_Menores'].value_counts().sort_index()
+df_cluster2['RENDA_B'].value_counts().sort_index()
+df_cluster2['AUTOR_B'].value_counts().sort_index()
+df_cluster2['REGRESSAO_MULTINOMIAL'].value_counts().sort_index()
+df_cluster2.describe()
+
+#%% Dummies de variáveis x qualitativas 
+
+df_cluster_dummies = pd.get_dummies(df_cluster2,
+                                    columns=['NATURALIDADE_B',
+                                    'Raça/cor',
+                                    'ESCOLARIDADE_B',
+                                    'RELAÇÃO_TRABALHO_B',
+                                    'Estado_Civil',
+                                    'Filhos_Menores',
+                                    'RENDA_B',
+                                    'AUTOR_B'],
+                                    dtype=int,
+                                    drop_first=True)
+
+#%% Tratamento da variável y para uso na função MNLogit]
+
+df_cluster_dummies.loc[df_cluster_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Primeiro_Atendimento',
+                           'REGRESSAO_V2'] = 1
+
+df_cluster_dummies.loc[df_cluster_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Reativou',
+                           'REGRESSAO_V2'] = 2
+
+df_cluster_dummies.loc[df_cluster_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Retornou',
+                           'REGRESSAO_V2'] = 0
+
+df_cluster_dummies['REGRESSAO_V2'] = \
+    df_cluster_dummies['REGRESSAO_V2'].astype('int64')
+    
+df_cluster_dummies.info()
+
+#%% Estimação do MODELO_1 com as variáveis da clusterização
+
+x = df_cluster_dummies.drop(columns=['REGRESSAO_MULTINOMIAL','REGRESSAO_V2', 'IDADE', 'AUTOR_B_Outros', 'NATURALIDADE_B_Outros', 
+                                     'RELAÇÃO_TRABALHO_B_Outros', 'Estado_Civil_Viúva(o)', 'Estado_Civil_União Estável (com registro em cartório',
+                                     'AUTOR_B_Familiar'])
+y = df_cluster_dummies['REGRESSAO_V2']
+
+X = sm.add_constant(x)
+
+modelo_mulheres = MNLogit(endog=y, exog=X).fit()
+
+modelo_mulheres.summary()
+
+
+###################### GRUPO 1 ##############################################
+
+
+#%% Reelaborando modelo por cluster 
+
+Variaveis_interesse = [2,3,4,5,6,7,8,9,10,11,32]
+
+df_cluster3 = df_cluster.iloc[:,Variaveis_interesse]
+
+df_cluster3['Grupo'].value_counts().sort_index()
+
+#%% Datasets por cluster
+
+df_grupo1 = df_cluster3[df_cluster3['Grupo'] == 'Grupo 1']
+df_grupo2 = df_cluster3[df_cluster3['Grupo'] == 'Grupo 2']
+df_grupo3 = df_cluster3[df_cluster3['Grupo'] == 'Grupo 3']
+
+#%% Dummies para grupo 1
+
+df_grupo1_dummies = pd.get_dummies(df_grupo1,
+                                    columns=['NATURALIDADE_B',
+                                    'Raça/cor',
+                                    'ESCOLARIDADE_B',
+                                    'RELAÇÃO_TRABALHO_B',
+                                    'Estado_Civil',
+                                    'Filhos_Menores',
+                                    'RENDA_B',
+                                    'AUTOR_B'],
+                                    dtype=int,
+                                    drop_first=True)
+
+#%% Preparação do LNLogit do grupo 1
+
+df_grupo1_dummies.loc[df_grupo1_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Primeiro_Atendimento',
+                           'REGRESSAO_V2'] = 0
+
+df_grupo1_dummies.loc[df_grupo1_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Reativou',
+                           'REGRESSAO_V2'] = 1
+
+df_grupo1_dummies.loc[df_grupo1_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Retornou',
+                           'REGRESSAO_V2'] = 2
+
+df_grupo1_dummies['REGRESSAO_V2'] = \
+    df_grupo1_dummies['REGRESSAO_V2'].astype('int64')
+    
+df_grupo1_dummies.info()
+
+#%% Verificando multicolinearidade Grupo 1
+
+df_multicolinearidade_g1 = df_grupo1_dummies.drop(columns=['REGRESSAO_MULTINOMIAL', 'Grupo'])
+corr_matrix1 = df_multicolinearidade_g1.corr()
+
+#%% Estimação do MODELO_Grupo1 com as variáveis da clusterização
+
+x = df_grupo1_dummies.drop(columns=['REGRESSAO_MULTINOMIAL','REGRESSAO_V2', 'Grupo', 'RELAÇÃO_TRABALHO_B_Não exerce atividade remunerada',
+                                    'IDADE', 'AUTOR_B_Outros', 'NATURALIDADE_B_Outros','RELAÇÃO_TRABALHO_B_Outros', 'Estado_Civil_União Estável (com registro em cartório',
+                                    'AUTOR_B_Familiar'])
+y = df_grupo1_dummies['REGRESSAO_V2']
+
+X = sm.add_constant(x)
+
+modelo_grupo1 = MNLogit(endog=y, exog=X).fit()
+
+modelo_grupo1.summary()
+
+#%% RETIRANDO TODAS AS VARIÁVEIS SEM POTENCIAL PREDITIVO
+
+
+x = df_grupo1_dummies.drop(columns=['REGRESSAO_MULTINOMIAL','REGRESSAO_V2', 'Grupo', 'RELAÇÃO_TRABALHO_B_Não exerce atividade remunerada',
+                                    'IDADE', 'AUTOR_B_Outros', 'NATURALIDADE_B_Outros','RELAÇÃO_TRABALHO_B_Outros', 'Estado_Civil_União Estável (com registro em cartório',
+                                    'AUTOR_B_Familiar', 'NATURALIDADE_B_Sudeste, fora de São Paulo', 'NATURALIDADE_B_São Paulo','ESCOLARIDADE_B_Baixa',
+                                    'ESCOLARIDADE_B_Média', 'RELAÇÃO_TRABALHO_B_Regimes informais','Estado_Civil_Divorciada(o)','Estado_Civil_Solteira(o)',
+                                    'Estado_Civil_União Estável (sem registro no cartório)','Filhos_Menores_Sim', 'RENDA_B_De 1 a 2 salários mínimos',
+                                    'RENDA_B_Mais de 2 salários mínimos'])
+y = df_grupo1_dummies['REGRESSAO_V2']
+
+X = sm.add_constant(x)
+
+modelo_grupo1 = MNLogit(endog=y, exog=X).fit()
+
+modelo_grupo1.summary()
+
+#%% PREDIÇÃO GRUPO 1
+
+# Probabilidades de ocorrência das três categoriais
+# Definição do array 'phats':
+phats = modelo_atrasado.predict()
+phats
+
+# Transformação do array 'phats' para o dataframe 'phats':
+phats = pd.DataFrame(phats)
+phats
+
+# Concatenando o dataframe original com o dataframe 'phats':
+df_atrasado_multinomial = pd.concat([df_atrasado_multinomial, phats], axis=1)
+df_atrasado_multinomial
+
+# Analisando o resultado de acordo com a categoria de resposta:
+predicao = phats.idxmax(axis=1)
+predicao
+
+# Adicionando a categoria de resposta 'predicao' ao dataframe original,
+#por meio da criação da variável 'predicao'
+df_atrasado_multinomial['predicao'] = predicao
+df_atrasado_multinomial
+
+# Criando a variável 'predicao_label' a partir da variável 'predicao',
+#respeitando os seguintes rótulos:
+# 0: não chegou atrasado
+# 1: chegou atrasado primeira aula
+# 2: chegou atrasado segunda aula
+
+df_atrasado_multinomial.loc[df_atrasado_multinomial['predicao']==0,
+                            'predicao_label'] ='não chegou atrasado'
+df_atrasado_multinomial.loc[df_atrasado_multinomial['predicao']==1,
+                            'predicao_label'] ='chegou atrasado primeira aula'
+df_atrasado_multinomial.loc[df_atrasado_multinomial['predicao']==2,
+                            'predicao_label'] ='chegou atrasado segunda aula'
+
+df_atrasado_multinomial
+
+###################### GRUPO 2 ##############################################
+
+#%% Dummies para grupo 2
+
+df_grupo2_dummies = pd.get_dummies(df_grupo2,
+                                    columns=['NATURALIDADE_B',
+                                    'Raça/cor',
+                                    'ESCOLARIDADE_B',
+                                    'RELAÇÃO_TRABALHO_B',
+                                    'Estado_Civil',
+                                    'Filhos_Menores',
+                                    'RENDA_B',
+                                    'AUTOR_B'],
+                                    dtype=int,
+                                    drop_first=True)
+
+#%% Preparação do LNLogit do grupo 2
+
+df_grupo2_dummies.loc[df_grupo2_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Primeiro_Atendimento',
+                           'REGRESSAO_V2'] = 1
+
+df_grupo2_dummies.loc[df_grupo2_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Reativou',
+                           'REGRESSAO_V2'] = 2
+
+df_grupo2_dummies.loc[df_grupo2_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Retornou',
+                           'REGRESSAO_V2'] = 0
+
+df_grupo2_dummies['REGRESSAO_V2'] = \
+    df_grupo2_dummies['REGRESSAO_V2'].astype('int64')
+    
+df_grupo2_dummies.info()
+
+#%% Verificando multicolineridade
+
+
+df_multicolinearidade_g2 = df_grupo2_dummies.drop(columns=['REGRESSAO_MULTINOMIAL', 'Grupo'])
+corr_matrix2 = df_multicolinearidade_g2.corr()
+
+
+#%% Estimação do MODELO_Grupo2 com as variáveis da clusterização
+
+x = df_grupo2_dummies.drop(columns=['REGRESSAO_MULTINOMIAL','REGRESSAO_V2', 'Grupo','RELAÇÃO_TRABALHO_B_Não exerce atividade remunerada',
+                                    'IDADE', 'AUTOR_B_Outros', 'NATURALIDADE_B_Outros','RELAÇÃO_TRABALHO_B_Outros', 
+                                    'Estado_Civil_Viúva(o)','AUTOR_B_Familiar'])
+y = df_grupo2_dummies['REGRESSAO_V2']
+
+X = sm.add_constant(x)
+
+modelo_grupo2 = MNLogit(endog=y, exog=X).fit()
+
+modelo_grupo2.summary()
+
+
+###################### GRUPO 3 ##############################################
+
+#%% Dummies para grupo 3
+
+df_grupo3_dummies = pd.get_dummies(df_grupo3,
+                                    columns=['NATURALIDADE_B',
+                                    'Raça/cor',
+                                    'ESCOLARIDADE_B',
+                                    'RELAÇÃO_TRABALHO_B',
+                                    'Estado_Civil',
+                                    'Filhos_Menores',
+                                    'RENDA_B',
+                                    'AUTOR_B'],
+                                    dtype=int,
+                                    drop_first=True)
+
+#%% Preparação do LNLogit do grupo 1
+
+df_grupo3_dummies.loc[df_grupo3_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Primeiro_Atendimento',
+                           'REGRESSAO_V2'] = 0
+
+df_grupo3_dummies.loc[df_grupo3_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Reativou',
+                           'REGRESSAO_V2'] = 2
+
+df_grupo3_dummies.loc[df_grupo3_dummies['REGRESSAO_MULTINOMIAL']==
+                           'Retornou',
+                           'REGRESSAO_V2'] = 1
+
+df_grupo3_dummies['REGRESSAO_V2'] = \
+    df_grupo3_dummies['REGRESSAO_V2'].astype('int64')
+    
+df_grupo3_dummies.info()
+
+#%% Verificando multicolinearidade Grupo 3
+
+df_multicolinearidade_g3 = df_grupo3_dummies.drop(columns=['REGRESSAO_MULTINOMIAL', 'Grupo'])
+corr_matrix3 = df_multicolinearidade_g3.corr()
+
+#%% VIF grupo 3
+
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+
+X = df_grupo3_dummies.drop(columns=['Grupo', 'REGRESSAO_MULTINOMIAL'])
+vif_data = pd.DataFrame()
+vif_data["feature"] = X.columns
+vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(len(X.columns))]
+
+print(vif_data)
+
+
+#%% Estimação do MODELO_Grupo1 com as variáveis da clusterização
+
+x = df_grupo3_dummies.drop(columns=['REGRESSAO_MULTINOMIAL','REGRESSAO_V2', 'Grupo', 'RELAÇÃO_TRABALHO_B_Não exerce atividade remunerada', 'IDADE'])
+y = df_grupo3_dummies['REGRESSAO_V2']
+
+X = sm.add_constant(x)
+
+modelo_grupo3 = MNLogit(endog=y, exog=X).fit()
+
+modelo_grupo3.summary()
