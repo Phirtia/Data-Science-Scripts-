@@ -9,7 +9,7 @@ Repositório para guardar scripts em R desenvolvidos enquanto cientista de dados
 
 - [Scritp Frequência Simples](anexos/Script_CCLGBTI.R)
 
-## Trabalho de Conclusão (TCC) do MBA em Data Science e Analytics
+## Algoritmo de combate à violência contra a mulher - Data Science Project
 
 - [Script Data Wrangling - R](https://github.com/Phirtia/Data-Science-Scripts-/blob/main/anexos/TCC_Data_Wrangling.R)
 - [Script Clusterização - R](https://github.com/Phirtia/Data-Science-Scripts-/blob/main/anexos/TCC_An%C3%A1lises.R)
