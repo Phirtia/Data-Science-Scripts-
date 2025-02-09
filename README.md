@@ -14,4 +14,4 @@ Repositório para guardar scripts em R desenvolvidos enquanto cientista de dados
 - [Script Data Wrangling - R](./TCC/TCC_Data_Wrangling.R)
 - [Script Clusterização - R](./TCC/TCC_Análises.R)
 - [Script Modelo Logístico Multinomial - Python](./TCC/modelo_clusterização.py)
-- [Script Modelo Logístico Binário - Python](./TCC/Modelo_binário_Python.py)
+- [Script Modelo Logístico Binário - Python](https://github.com/Phirtia/Data-Science-Scripts-/blob/main/anexos/Modelo_bin%C3%A1rio_Python.py)
