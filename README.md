@@ -11,7 +11,7 @@ Repositório para guardar scripts em R desenvolvidos enquanto cientista de dados
 
 ## Trabalho de Conclusão (TCC) do MBA em Data Science e Analytics
 
-- [Script Data Wrangling - R](TCC/TCC_Data_Wrangling.R)
-- [Script Clusterização - R](TCC/TCC_Análises.R)
-- [Script Modelo Logístico Multinomial - Python](TCC/modelo_clusterização.py)
-- [Script Modelo Logístico Binário - Python](TCC/Modelo_binário_Python.py)
+- [Script Data Wrangling - R](./TCC/TCC_Data_Wrangling.R)
+- [Script Clusterização - R](./TCC/TCC_Análises.R)
+- [Script Modelo Logístico Multinomial - Python](./TCC/modelo_clusterização.py)
+- [Script Modelo Logístico Binário - Python](./TCC/Modelo_binário_Python.py)
